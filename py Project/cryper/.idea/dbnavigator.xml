@@ -25,13 +25,13 @@
     <autoscroll-from-editor value="true" />
     <show-object-properties value="true" />
     <loaded-nodes>
-      <connection connection-id="347ec2d6-b178-406f-8fe2-c4e0aa43bb90">
+      <connection connection-id="d7498c28-5feb-4318-bc71-eeb2776c3dcc">
         <schema name="main" object-types="table, view, constraint, index, column, dataset trigger" />
       </connection>
     </loaded-nodes>
   </component>
   <component name="DBNavigator.Project.DatabaseConsoleManager">
-    <connection id="347ec2d6-b178-406f-8fe2-c4e0aa43bb90">
+    <connection id="d7498c28-5feb-4318-bc71-eeb2776c3dcc">
       <console name="Connection" type="STANDARD" schema="main" session="Main" />
     </connection>
   </component>
@@ -39,7 +39,10 @@
     <open-files />
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
-    <connection id="347ec2d6-b178-406f-8fe2-c4e0aa43bb90" />
+    <connection id="d7498c28-5feb-4318-bc71-eeb2776c3dcc" />
+  </component>
+  <component name="DBNavigator.Project.DatasetFilterManager">
+    <filter-actions connection-id="d7498c28-5feb-4318-bc71-eeb2776c3dcc" dataset="main.scutjnu" active-filter-id="EMPTY_FILTER" />
   </component>
   <component name="DBNavigator.Project.EditorStateManager">
     <last-used-providers />
@@ -67,7 +70,7 @@
   </component>
   <component name="DBNavigator.Project.Settings">
     <connections>
-      <connection id="347ec2d6-b178-406f-8fe2-c4e0aa43bb90" active="true">
+      <connection id="d7498c28-5feb-4318-bc71-eeb2776c3dcc" active="true">
         <database>
           <name value="Connection" />
           <description value="" />
@@ -82,7 +85,7 @@
           <port value="" />
           <database value="" />
           <files>
-            <file path="D:\Study\___Project\py Project\cryper\mysite\data.db" schema="main" />
+            <file path="D:\Study\___Project\py Project\cryper\data.sqlite3" schema="main" />
           </files>
           <type value="NONE" />
           <user value="" />

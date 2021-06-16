@@ -10,7 +10,7 @@ def main():
     baseurl = "http://www2.scut.edu.cn/sse/xshd/list"
     datalist = getData(baseurl)
     print(datalist)
-    saveData('data.db', datalist)
+    saveData('data.sqlite3', datalist)
 
 report_title = re.compile(r'报告题目：(.*?)[\xa0|报|<]')#报告题目
 report_date = re.compile('\d{4}[年|-]\d{1,2}[月|-]\d{1,2}日*')#报告时间
@@ -139,8 +139,8 @@ def getData(baseurl):
             report_datalist.append(notice_time)
             report_datalist.append(re_date)
             report_datalist.append(re_place)
-            report_datalist.append(['华南理工大学软件学院'])
             report_datalist.append(re_link)
+            report_datalist.append(['华南理工大学软件学院'])
             continue
 
         for i in range(len(title)):
@@ -186,9 +186,8 @@ def getData(baseurl):
             re_place.append(str(place[i]))
         report_datalist.append(re_place)
 
-        report_datalist.append(['华南理工大学软件学院'])
-
         report_datalist.append(re_link)
+        report_datalist.append(['华南理工大学软件学院'])
     return report_datalist
 
 
@@ -217,22 +216,22 @@ def askURL(url):
 
 
 def saveData(dbpath, datalist):
-    # 创表
-    db = sqlite3.connect(dbpath)
-    c = db.cursor()
-    sql = '''
-        create table scut(
-        report_title char(100),
-        report_reporter char(100),
-        notice_time char(100),
-        report_date char(100),
-        report_place char(100),
-        university char(20),
-        link char(100));
-    '''
-    c.execute(sql)
-    db.commit()
-    db.close()
+    # # 创表
+    # db = sqlite3.connect(dbpath)
+    # c = db.cursor()
+    # sql = '''
+    #     create table scut(
+    #     title char(100),
+    #     reporter char(100),
+    #     notice_time char(100),
+    #     report_time char(100),
+    #     address char(100),
+    #     link char(100),
+    #     university char(20));
+    # '''
+    # c.execute(sql)
+    # db.commit()
+    # db.close()
 
     conn = sqlite3.connect(dbpath)
     cur = conn.cursor()
@@ -246,7 +245,7 @@ def saveData(dbpath, datalist):
                 data.append(str(datalist[index+x]).replace("'", '').replace('[', "'").replace(']', "'"))
 
         sql = '''
-            insert into scut values(%s);
+            insert into scutjnu values(%s);
         ''' % ",".join(data)
         print(sql)
         cur.execute(sql)

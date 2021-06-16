@@ -1,13 +1,14 @@
-import requests
+import urllib.request
 from lxml import etree
 import sqlite3
 import random
+import re
 
 def main():
-    baseurl = "http://xxxy2016.jnu.edu.cn/Category_37/Index"
+    baseurl = "https://xxxy.jnu.edu.cn/27469/list"
     datalist = getData(baseurl)
     print(datalist)
-    saveData('data.db', datalist)
+    saveData('data.sqlite3', datalist)
 
 def get_user_agent():
     '''
@@ -56,14 +57,15 @@ def get_user_agent():
 def getData(baseurl):
     linklist = []
     datalist = []
-    for i in range(1, 24):  # [1,24]
-        url = baseurl + '_' + str(i) + ".aspx"
+    for i in range(1, 34):  # [1,34]
+        url = baseurl + str(i) + ".htm"
         res = askURL(url)
         html = etree.HTML(res)
-        lis = html.xpath('/html/body/div/div[4]/div[2]/div[2]/ul/li')
+        lis = html.xpath('/html/body/div[2]/div[5]/div[3]//ul[@class="list-ul"]/li')
+
         for li in lis:
             #  标题
-            title = li.xpath('./a/text()')
+            title = li.xpath("./a/span[1]/text()")
             if title == []:
                 continue
             # print(title)
@@ -74,7 +76,7 @@ def getData(baseurl):
                 continue
             if '讲座' not in title[0]:
                 continue
-            link[0] = 'http://xxxy2016.jnu.edu.cn'+link[0]
+            link[0] = 'https://xxxy.jnu.edu.cn'+link[0]
             # print(link)
             linklist.append(link[0])
 
@@ -82,6 +84,8 @@ def getData(baseurl):
         res = askURL(report_link)
         html = etree.HTML(res)
         article = html.xpath('//*[@id="fontzoom"]')
+        if ('信息安全' not in res) and ('密码' not in res) and ('information security' not in res) and ('密码学' not in res) and ('cryptography' not in res) and ('cryptology' not in res):
+            continue
         for ar in article:
             # 报告题目
             report_title = ar.xpath('./p/strong[contains(text(),"题")]/parent::p/text()')
@@ -128,6 +132,12 @@ def getData(baseurl):
             print(report_reporter)
             datalist.append(report_reporter)
 
+            # 通知事件
+            n_time = html.xpath('/html/body/div[2]/div[5]/div[3]//p[@class="article-small"]/span[1]/text()')
+            notice_time = [n_time[0].replace('发布时间：', '').replace(' ', '')]
+            print(notice_time)
+            datalist.append(notice_time)
+
             # 报告时间
             report_date = ar.xpath('./p/strong[contains(text(),"时 \xa0间：") or contains(text(),"时\xa0 间：") or contains(text(),"时间：") or contains(text(),"时\xa0") or contains(text(), "时 \xa0\xa0间：") or contains(text(), "时 \xa0 间：") or contains(text(),"时 间：")]/parent::p/text()')
             if not report_date:
@@ -142,14 +152,21 @@ def getData(baseurl):
                 report_date = ar.xpath('./div[contains(text(),"时 \xa0间")]/text()')
             if not report_date:
                 report_date = ar.xpath('./p/span/strong/span[contains(text(),"时 间：")]/../../span/text()')
-            if report_date[0][0] < '0' or report_date[0][0] > '9':
-                report_date = ar.xpath('./p/strong[contains(text(),"时\xa0 间：")]/parent::p//text()')
+            if report_date[0].replace(' ', '').replace('\xa0', '') == '':
+                report_date.remove(report_date[0])
+            # if report_date[0][0] < '0' or report_date[0][0] > '9':
+            #     report_date = ar.xpath('./p/strong[contains(text(),"时\xa0 间：")]/parent::p//text()')
+            r_datestring = ""
             for date_index in range(len(report_date)):
                 report_date[date_index] = report_date[date_index].replace('\xa0', ' ').replace('：', '')
-            if '时' not in report_date[0]:
-                report_date.remove(report_date[0])
-            print(report_date)
-            datalist.append(report_date)
+            r_datestring = ','.join(report_date)
+            if r_datestring[0] == '月':
+                r_datestring = ar.xpath('//*[@id="fontzoom"]/p[7]')[0].xpath('string(.)')
+            r_date = [r_datestring.split('日')[0].replace('年', '-').replace('月', '-').replace(' ', '').replace('时', '').replace('间', '').replace(',', '').replace('\xa0', '').replace('：', '')]
+            # if '时' not in report_date[0]:
+            #     report_date.remove(report_date[0])
+            print(r_date)
+            datalist.append(r_date)
 
             # 报告地点
             report_place = ar.xpath('./p/strong[contains(text(),"地 \xa0点：") or contains(text(),"地\xa0 点：") or contains(text(),"地\xa0 \xa0点：") or contains(text(),"地\xa0\xa0 点：") or contains(text(),"地 点：") or contains(text(),"地\xa0") or contains(text(),"地点：")]/parent::p/text()')
@@ -169,37 +186,37 @@ def getData(baseurl):
                 report_place = ar.xpath('./p/b[contains(text(),"地\xa0 点：")]/parent::p/text()')
             if not report_place:
                 report_place = ar.xpath('./p/strong/span[contains(text(),"地\xa0 点：")]/../../span/text()')
+            if len(report_place[0].replace(' ', '').replace('\xa0', '')) == 0:
+                report_place.remove(report_place[0])
             for place_index in range(len(report_place)):
                 report_place[place_index] = report_place[place_index].replace('\xa0', '').replace('：', '')
             print(report_place)
             datalist.append(report_place)
             university = []
             link_list = []
-            university.append('暨南大学')
+            university.append('暨南大学信息学院')
             link_list.append(report_link)
-            datalist.append(university)
             datalist.append(link_list)
+            datalist.append(university)
 
     return datalist
 
 
 def askURL(url):
-    # head = {
-    #     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-    #                   "Chrome/90.0.4430.212 Safari/537.36"}
-    head = {"User-Agent": get_user_agent()}
-    # request = urllib.request.Request(url, headers=head)
-    # html = ""
-    # try:
-    #     response = urllib.request.urlopen(request)
-    #     html = response.read().decode("utf-8")
-    # except urllib.error.URLError as e:
-    #     if hasattr(e, "code"):
-    #         print(e.code)
-    #     if hasattr(e, "reason"):
-    #         print(e.reason)
-    html = requests.get(url=url, headers=head, proxies={'http': 'http://124.94.251.187:9999'}).text
-
+    head = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/90.0.4430.212 Safari/537.36"}
+    # head = {"User-Agent": get_user_agent()}
+    request = urllib.request.Request(url, headers=head)
+    html = ""
+    try:
+        response = urllib.request.urlopen(request)
+        html = response.read().decode("utf-8")
+    except urllib.error.URLError as e:
+        if hasattr(e, "code"):
+            print(e.code)
+        if hasattr(e, "reason"):
+            print(e.reason)
     return html
 
 def saveData(dbpath, datalist):
@@ -210,10 +227,11 @@ def saveData(dbpath, datalist):
         create table scutjnu(
         title char(100),
         reporter char(100),
-        date char(100),
-        place char(100),
-        university char(20),
-        link char(100));
+        notice_time char(100),
+        report_time char(100),
+        address char(100),
+        link char(100),
+        university char(20));
     '''
     c.execute(sql)
     db.commit()
@@ -222,9 +240,9 @@ def saveData(dbpath, datalist):
     conn = sqlite3.connect(dbpath)
     cur = conn.cursor()
 
-    for index in range(0, len(datalist), 6):
+    for index in range(0, len(datalist), 7):
         data = []
-        for j in range(6):
+        for j in range(7):
             datalist[index+j] = str(datalist[index+j]).replace("'", '').replace('[', "'").replace(']', "'")
             data.append(datalist[index+j])
 
